@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type Day = "월" | "화" | "수" | "목" | "금";
 
@@ -295,25 +295,15 @@ function blockHeight(start: string, end: string) {
 export default function ScheduleAddPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [recommended, setRecommended] = useState<Set<string>>(new Set());
-  const [lastAddedId, setLastAddedId] = useState<string | null>(null);
 
-  const byId = useMemo(
-    () => Object.fromEntries(SAMPLE_COURSES.map((c) => [c.id, c])),
-    [] as unknown as Record<string, Course>
+  const byId = useMemo<Record<string, Course>>(
+    () =>
+      Object.fromEntries(SAMPLE_COURSES.map((c) => [c.id, c])) as Record<
+        string,
+        Course
+      >,
+    []
   );
-
-  const dayToCourses = useMemo(() => {
-    const map = new Map<Day, Course[]>();
-    DAYS.forEach((d) => map.set(d, []));
-    SAMPLE_COURSES.forEach((c) => {
-      map.get(c.day)!.push(c);
-    });
-    // 시간 순 정렬
-    DAYS.forEach((d) =>
-      map.get(d)!.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
-    );
-    return map;
-  }, []);
 
   function canSelect(next: Course): boolean {
     // 이미 선택된 강의들과 겹치면 불가
@@ -335,11 +325,9 @@ export default function ScheduleAddPage() {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
-        setLastAddedId(null);
       } else {
         if (!canSelect(course)) return prev; // 겹치면 무시
         next.add(id);
-        setLastAddedId(id);
         // 새 추천 계산
         const rec = recommendAfterAdd(course, SAMPLE_COURSES, next);
         setRecommended(new Set(rec));
@@ -355,7 +343,6 @@ export default function ScheduleAddPage() {
     setSelected((prev) => new Set(prev).add(id));
     // 추천을 클릭하면 해당 강의는 선택 상태로 전환, 추천은 모두 제거
     setRecommended(new Set());
-    setLastAddedId(id);
   }
 
   return (
